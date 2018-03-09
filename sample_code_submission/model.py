@@ -20,6 +20,8 @@ class model:
         self.num_feat=1
         self.num_labels=1
         self.is_trained=False
+        self.clf = linear_model.LinearRegression()
+
 
     def fit(self, X, y):
         '''
@@ -44,7 +46,6 @@ class model:
         print("FIT: dim(y)= [{:d}, {:d}]".format(num_train_samples, self.num_labels))
         if (self.num_train_samples != num_train_samples):
             print("ARRGH: number of samples in X and y do not match!")
-        self.clf = linear_model.LinearRegression()
         self.clf.fit(X, y)
         self.is_trained=True
 
