@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from sys import argv, path
-path.append ("D:\Projets\EgaliteTeam-Houseprice-master\ingestion_program") # Contains libraries you will need
+path.append ("../../ingestion_program") # Contains libraries you will need
 from data_manager import DataManager  # such as DataManager
 import numpy as np
 from sklearn.base import BaseEstimator
