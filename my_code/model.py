@@ -9,7 +9,7 @@ You must supply at least 4 methods:
 import pickle
 import numpy as np   # We recommend to use numpy arrays
 from os.path import isfile
-from sklearn import datasets, linear_model, tree 
+from sklearn import datasets, linear_model, ensemble 
 
 class model:
     def __init__(self):
@@ -21,7 +21,7 @@ class model:
         self.num_feat=1
         self.num_labels=1
         self.is_trained=False
-        self.clf = tree.DecisionTreeRegressor()
+        self.clf = ensemble.RandomForestRegressor()
 
     def fit(self, X, y):
         '''
