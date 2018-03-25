@@ -7,9 +7,10 @@ You must supply at least 4 methods:
 - load: reloads the model.
 '''
 import pickle
+from prepro import preprocessor
 import numpy as np   # We recommend to use numpy arrays
 from os.path import isfile
-from sklearn import datasets, linear_model, ensemble 
+from sklearn import ensemble 
 
 class model:
     def __init__(self):
@@ -37,7 +38,9 @@ class model:
         Use data_converter.convert_to_num() to convert to the category number format.
         For regression, labels are continuous values.
         '''
-      
+        prepro=preprocessor()
+        prepro.pipe(10)
+        prepro.fit_transform(X,y)
         self.num_train_samples = len(X)
         if X.ndim>1: self.num_feat = len(X[0])
         print("FIT: dim(X)= [{:d}, {:d}]".format(self.num_train_samples, self.num_feat))
@@ -46,7 +49,6 @@ class model:
         print("FIT: dim(y)= [{:d}, {:d}]".format(num_train_samples, self.num_labels))
         if (self.num_train_samples != num_train_samples):
             print("ARRGH: number of samples in X and y do not match!")
-        
         self.clf.fit(X, y)
         self.is_trained=True
 
@@ -80,3 +82,38 @@ class model:
                 self = pickle.load(f)
             print("Model reloaded from: " + modelfile)
         return self
+
+if __name__ == "__main__":
+    import imp
+    from sklearn.model_selection import KFold
+    from numpy import zeros, mean
+    r2_score = imp.load_source('metric', "../scoring_program/my_metric.py").my_r2_score
+    #defining the variables
+    Xtrain = np.loadtxt("../../public_data/houseprice_train.data")
+    ytrain = np.loadtxt("../../public_data/houseprice_train.solution")
+    Xtest = np.loadtxt("../../public_data/houseprice_test.data")
+    Xvalid = np.loadtxt("../../public_data/houseprice_valid.data")
+    #defining the classifier
+    classifier = model()
+    classifier.fit(Xtrain, ytrain)
+    y_hat_train = classifier.predict(Xtrain)
+    training_error = r2_score(ytrain, y_hat_train)
+    #cross validation
+    n=3
+    k=KFold(n_splits=n)
+    k.get_n_splits(Xtrain)
+    i=0
+    scores = zeros(n)
+    for l, m in k.split(Xtrain):
+        Xtr, Xva = Xtrain[l], Xtrain[m]
+        Ytr, Yva = ytrain[l], ytrain[m]
+        mod = model()
+        mod.fit(Xtr, Ytr)
+        Yhat = mod.predict(Xva)
+        scores[i] = r2_score(Yva, Yhat)
+        print ('Fold', i+1, 'example metric = ', scores[i])
+        i=i+1
+    cross_validation_error = mean(scores)
+    #results
+    print("\nTraining scores: ", training_error)
+    print ("Cross-Validation scores: ", cross_validation_error)
