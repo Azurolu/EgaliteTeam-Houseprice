@@ -7,8 +7,6 @@ from data_manager import DataManager  # such as DataManager
 import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.pipeline import Pipeline
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import Normalizer
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.feature_selection import SelectFromModel
@@ -59,14 +57,14 @@ if __name__=="__main__":
     D = DataManager(basename, input_dir) # Load data
     print("*** Original data ***")
     print D
-    
+    # Starting preprocessing
     Prepro = Preprocessor()
-    
+    # Defining variables
     X=np.copy(D.data['X_train'])
     y=np.copy(D.data['Y_train'])
     x_valid=np.copy(D.data['X_valid'])
     x_test=np.copy(D.data['X_valid'])
-    
+    # Selection of features and transformation
     model_selection = Prepro.selectFeatures(X, y)
     D.data['X_train'] = model_selection.transform(X)
     D.data['X_valid']=model_selection.transform(x_valid)
