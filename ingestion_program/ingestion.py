@@ -78,7 +78,7 @@ max_samples = float('Inf')
 
 # Save your model
 #################
-save_model = True
+save_model = False
 
 # I/O defaults
 ##############
@@ -89,9 +89,9 @@ save_previous_results = False
 # and the results written to. Change the root_dir to your local directory.
 root_dir = "../"
 default_input_dir = root_dir + "../public_data"
-default_output_dir = root_dir + "sample_result_submission"
+default_output_dir = root_dir + "result_submission"
 default_program_dir = root_dir + "ingestion_program"
-default_submission_dir = root_dir + "sample_code_submission"
+default_submission_dir = root_dir + "code"
 
 # =============================================================================
 # =========================== END USER OPTIONS ================================
