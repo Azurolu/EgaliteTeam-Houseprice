@@ -109,7 +109,7 @@ class Predictor(BaseEstimator):
     models, for which you choose the hyper-parameters.'''
     def __init__(self):
         '''This method initializes the predictor.'''
-        self.mod = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=50))
+        self.mod = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=50,max_depth=None,n_jobs=-1))
         print("PREDICTOR=" + self.mod.__str__())
 
     def fit(self, X, y):
@@ -150,6 +150,7 @@ if __name__=="__main__":
     from sklearn.model_selection import KFold
     from numpy import zeros
     import matplotlib.pyplot as plt
+    import time
     
     with open(metric_dir + '/metric.txt', 'r') as f:
         metric_name = f.readline().strip()
@@ -166,23 +167,41 @@ if __name__=="__main__":
     print D
     
     # Here we define models and compare them
-    model_dict = {
-            'RandomForest':RandomForestRegressor(n_estimators=50),
-            'RandomForest+BaggingRegressor': BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=50))
-            }
+    model_dict = {}
+    
+    # Test of max_depth
+    
+    for i in range(1,10):
+        model_dict["max_depth="+str(i)] = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=50,max_depth=i,n_jobs=-1))
+    model_dict["max_depth=None"] = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=50,max_depth=None,n_jobs=-1))
+    
+    # Test of n_estimators
+    
+    for i in range(25,100,25):
+        model_dict["n_estimators="+str(i)] = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=i,max_depth=None))
+    model_dict["n_estimators=10"] = BaggingRegressor(base_estimator=RandomForestRegressor(max_depth=None)) #n_estimator=10 is the default
+    
+    # Test of n_jobs (speed of training)
+    
+    model_dict["n_jobs auto (number of cores)"] = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=25,n_jobs=-1,max_depth=None))
+    model_dict["n_jobs=1"] = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=25,n_jobs=1,max_depth=None)) #n_estimator=10 is the default
+    
     k=0
     training_score = zeros([len(model_dict)])
     cv_score = zeros([len(model_dict)])
+    speeds = zeros([len(model_dict)])
     for key in model_dict:
         mymodel = model_dict[key]
         print("\n\n *** Model {:s}:{:s}".format(key,model_dict[key].__str__()))
  
         # Train
         print("Training")
+        start = time.time()
         X_train = D.data['X_train']
         Y_train = D.data['Y_train']
         mymodel.fit(X_train, Y_train)
-    
+        end = time.time()
+        
         # Predictions on training data
         print("Predicting")
         Ypred_tr = mymodel.predict(X_train)
@@ -206,6 +225,13 @@ if __name__=="__main__":
         # Compute and print performance
         training_score[k] = scoring_function(Y_train, Ypred_tr)
         cv_score[k] = scoring_function(Y_train, Ypred_cv)
+        speeds[k] = end-start
+        
+        ypred  = plt.scatter(Y_train,Ypred_cv)
+        ytrain = plt.scatter(Y_train,Y_train)
+        plt.xticks(rotation='vertical')
+        plt.legend([ypred,ytrain],['Predicted price','Actual price'])
+        plt.show()
         
         print("\nRESULTS FOR SCORE {:s}".format(metric_name))
         print("TRAINING SCORE= {:f}".format(training_score[k]))
@@ -220,6 +246,26 @@ if __name__=="__main__":
 
     print("RESULTS : {}".format(training_score))
 
+    lists = sorted(dict(zip(model_dict.keys(),training_score)).items()) # sorted by key, return a list of tuples
+    x, y = zip(*lists) # unpack a list of pairs into two tuples
     
+    plt.bar(x, y)
+    plt.xticks(rotation='vertical')
+    plt.show()
+    
+    lists = sorted(dict(zip(model_dict.keys(),cv_score)).items()) # sorted by key, return a list of tuples
+    x, y = zip(*lists) # unpack a list of pairs into two tuples
+    
+    plt.bar(x, y)
+    plt.xticks(rotation='vertical')
+    plt.show()
+    
+    lists = sorted(dict(zip(model_dict.keys(),speeds)).items()) # sorted by key, return a list of tuples
+    x, y = zip(*lists) # unpack a list of pairs into two tuples
+    
+    plt.bar(x, y)
+    plt.xticks(rotation='vertical')
+    plt.show()
+        
     #plt.figure()
     #plt.plot(training_score)
