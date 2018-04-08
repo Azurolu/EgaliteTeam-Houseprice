@@ -1,6 +1,5 @@
 '''
-Sample predictive model.
-You must supply at least 4 methods:
+We supply 4 methods:
 - fit: trains the model.
 - predict: uses the model to perform predictions.
 - save: saves the model.
@@ -9,7 +8,7 @@ You must supply at least 4 methods:
 import pickle
 import numpy as np   # We recommend to use numpy arrays
 from os.path import isfile
-from sklearn.ensemble import RandomForestRegressor, BaggingRegressor, AdaBoostRegressor
+from sklearn.ensemble import RandomForestRegressor, BaggingRegressor
 from sklearn.base import  BaseEstimator
 
 from prepro import Preprocessor
@@ -104,9 +103,7 @@ class model:
         return self
         
 class Predictor(BaseEstimator):
-    '''Predictor: modify this class to create a predictor of
-    your choice. This could be your own algorithm, of one for the scikit-learn
-    models, for which you choose the hyper-parameters.'''
+    
     def __init__(self):
         '''This method initializes the predictor.'''
         self.mod = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=50,max_depth=None,n_jobs=-1))
