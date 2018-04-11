@@ -15,6 +15,8 @@ Replace it with programs that:
 
 from sklearn.base import BaseEstimator
 from sklearn.decomposition import PCA
+from sklearn.feature_selection import SelectFromModel
+from sklearn.ensemble import RandomForestRegressor
 
 class NothingTransformer:
     def fit(self, X, y):
@@ -26,6 +28,19 @@ class NothingTransformer:
     def __str__(self) :
         return "Don't worry : Nothing's happening"
 
+class Transformer:
+    def __init__(self):
+        self.clf = RandomForestRegressor(n_estimators=50,n_jobs=-1)
+    def fit(self, X, y):
+        self.clf.fit(X,y)
+        self.model = SelectFromModel(self.clf, prefit=True)
+        return self.model
+    def transform(self,X):
+        return self.model.transform(X)
+    def __str__(self) :
+        return "Don't worry : Nothing's happening"
+
+
 class Preprocessor(BaseEstimator):
     def __init__(self):
         '''
@@ -33,16 +48,18 @@ class Preprocessor(BaseEstimator):
         Add also some defensive programming code, like the (calculated) 
         dimensions of the transformed X matrix.
         '''
-        self.transformer = NothingTransformer()
+        self.transformer = Transformer()
         print("PREPROCESSOR=" + self.transformer.__str__())
 
     def fit(self, X, y=None):
         print("PREPRO FIT")
         return self.transformer.fit(X, y)
 
-    def fit_transform(self, X, y=None):
-        print("PREPRO FIT_TRANSFORM")
-        return self.transformer.fit_transform(X)
+# =============================================================================
+#     def fit_transform(self, X, y=None):
+#         print("PREPRO FIT_TRANSFORM")
+#         return self.transformer.fit_transform(X)
+# =============================================================================
 
     def transform(self, X, y=None):
         print("PREPRO TRANSFORM")
