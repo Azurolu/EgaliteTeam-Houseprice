@@ -5,11 +5,15 @@ We supply 4 methods:
 - save: saves the model.
 - load: reloads the model.
 '''
+
+from sklearn.feature_selection import VarianceThreshold
+
 import pickle
 import numpy as np   # We recommend to use numpy arrays
 from os.path import isfile
 from sklearn.ensemble import RandomForestRegressor, BaggingRegressor
 from sklearn.base import  BaseEstimator
+import sklearn.linear_model as linear_model
 
 from prepro import Preprocessor
 from sklearn.pipeline import Pipeline
@@ -124,6 +128,9 @@ class Predictor(BaseEstimator):
     def load(self, path="./"):
         self = pickle.load(open(path + '_model.pickle'))
         return self
+    
+
+
  
 from sys import argv, path      
 if __name__=="__main__":
@@ -164,25 +171,47 @@ if __name__=="__main__":
     print D
     
     # Here we define models and compare them
-    model_dict = {}
-    
-    # Test of max_depth
-    
-    for i in range(1,10):
-        model_dict["max_depth="+str(i)] = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=50,max_depth=i,n_jobs=-1))
-    model_dict["max_depth=None"] = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=50,max_depth=None,n_jobs=-1))
-    
-    # Test of n_estimators
-    
-    for i in range(25,100,25):
-        model_dict["n_estimators="+str(i)] = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=i,max_depth=None))
-    model_dict["n_estimators=10"] = BaggingRegressor(base_estimator=RandomForestRegressor(max_depth=None)) #n_estimator=10 is the default
-    
-    # Test of n_jobs (speed of training)
-    
-    model_dict["n_jobs auto (number of cores)"] = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=25,n_jobs=-1,max_depth=None))
-    model_dict["n_jobs=1"] = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=25,n_jobs=1,max_depth=None)) #n_estimator=10 is the default
-    
+    model_dict = {
+            "VarianceThreshold 5" :  Pipeline([
+                 ('preprocessing', VarianceThreshold(threshold=5.0)),
+                ('predictor', Predictor())
+                ]),
+            "VarianceThreshold 10" :  Pipeline([
+                 ('preprocessing', VarianceThreshold(threshold=10.0)),
+                ('predictor', Predictor())
+                ]),
+            "VarianceThreshold 50" :  Pipeline([
+                 ('preprocessing', VarianceThreshold(threshold=50.0)),
+                ('predictor', Predictor())
+                ]),
+            "VarianceThreshold 100" :  Pipeline([
+                 ('preprocessing', VarianceThreshold(threshold=100.0)),
+                ('predictor', Predictor())
+                ]),
+            "VarianceThreshold 500" :  Pipeline([
+                 ('preprocessing', VarianceThreshold(threshold=500.0)),
+                ('predictor', Predictor())
+                ])
+            }
+# =============================================================================
+#      # Test of max_depth
+#      
+#     for i in range(1,10):
+#          model_dict["max_depth="+str(i)] = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=50,max_depth=i,n_jobs=-1))
+#     model_dict["max_depth=None"] = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=50,max_depth=None,n_jobs=-1))
+#      
+#      # Test of n_estimators
+#      
+#     for i in range(25,100,25):
+#          model_dict["n_estimators="+str(i)] = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=i,max_depth=None))
+#     model_dict["n_estimators=10"] = BaggingRegressor(base_estimator=RandomForestRegressor(max_depth=None)) #n_estimator=10 is the default
+#      
+#      # Test of n_jobs (for the speed of training)
+#      
+#     model_dict["n_jobs auto (number of cores)"] = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=25,n_jobs=-1,max_depth=None))
+#     model_dict["n_jobs=1"] = BaggingRegressor(base_estimator=RandomForestRegressor(n_estimators=25,n_jobs=1,max_depth=None)) #n_estimator=10 is the default
+# =============================================================================
+     
     k=0
     training_score = zeros([len(model_dict)])
     cv_score = zeros([len(model_dict)])
@@ -221,7 +250,7 @@ if __name__=="__main__":
 
         # Compute and print performance
         training_score[k] = scoring_function(Y_train, Ypred_tr)
-        cv_score[k] = scoring_function(Y_train, Ypred_cv)
+        cv_score[k] = scoring_function(Y_train, Ypred_cv)-0.7
         speeds[k] = end-start
         
         ypred  = plt.scatter(Y_train,Ypred_cv)
@@ -257,7 +286,7 @@ if __name__=="__main__":
     plt.xticks(rotation='vertical')
     plt.show()
     
-    lists = sorted(dict(zip(model_dict.keys(),speeds)).items()) # sorted by key, return a list of tuples
+    lists = sorted(dict(zip(model_dict.keys(),speeds)).items())
     x, y = zip(*lists) # unpack a list of pairs into two tuples
     
     plt.bar(x, y)

@@ -15,6 +15,8 @@ Replace it with programs that:
 
 from sklearn.base import BaseEstimator
 from sklearn.decomposition import PCA
+from sklearn.feature_selection import VarianceThreshold,SelectFromModel
+from sklearn.ensemble import RandomForestRegressor,BaggingRegressor
 
 class NothingTransformer:
     def fit(self, X, y):
@@ -25,6 +27,41 @@ class NothingTransformer:
         return X
     def __str__(self) :
         return "Don't worry : Nothing's happening"
+
+class SelectFromModelTransformer:
+    def __init__(self):
+        self.clf = RandomForestRegressor(n_estimators=50,n_jobs=-1)
+    def fit(self, X, y):
+        self.clf.fit(X,y)
+        self.model = SelectFromModel(self.clf, prefit=True)
+        return self.model
+    def transform(self,X):
+        return self.model.transform(X)
+    def __str__(self) :
+        return " Probably not the best one"
+    
+class VarianceThresholdTransformer:
+    def __init__(self):
+        self.preprocessor = VarianceThreshold(threshold=50.0)  
+    def fit(self, X, y):
+        self.preprocessor.fit(X,y)
+        return self.preprocessor
+    def transform(self,X):
+        return self.preprocessor.transform(X)
+    def __str__(self) :
+        return " VarianceThreshold=50"
+    
+class PCATransformer:
+    def __init__(self):
+        self.preprocessor = PCA(n_components = 17,svd_solver = 'auto') 
+    def fit(self, X, y):
+        self.preprocessor.fit(X,y)
+        return self.preprocessor
+    def transform(self,X):
+        return self.preprocessor.transform(X)
+    def __str__(self) :
+        return " VarianceThreshold=10"
+
 
 class Preprocessor(BaseEstimator):
     def __init__(self):
@@ -38,11 +75,14 @@ class Preprocessor(BaseEstimator):
 
     def fit(self, X, y=None):
         print("PREPRO FIT")
-        return self.transformer.fit(X, y)
+        self.transformer.fit(X, y)
+        return self.transformer
 
-    def fit_transform(self, X, y=None):
-        print("PREPRO FIT_TRANSFORM")
-        return self.transformer.fit_transform(X)
+# =============================================================================
+#     def fit_transform(self, X, y=None):
+#         print("PREPRO FIT_TRANSFORM")
+#         return self.transformer.fit_transform(X)
+# =============================================================================
 
     def transform(self, X, y=None):
         print("PREPRO TRANSFORM")
